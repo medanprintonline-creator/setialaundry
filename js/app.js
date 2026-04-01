@@ -1,6 +1,6 @@
 // ========== KONFIGURASI SUPABASE ==========
-const SUPABASE_URL = 'https://your-project.supabase.co';
-const SUPABASE_KEY = 'your-anon-key';
+const SUPABASE_URL = 'https://ewlmanmsvtxterdiuxsc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3bG1hbm1zdnR4dGVyZGl1eHNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjY5MjcsImV4cCI6MjA5MDY0MjkyN30.Chf_WoHDo6kGvktcZyKmL5vNCemhQMH2qgmaPOMYbQU';
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ========== GLOBAL VARIABEL ==========
