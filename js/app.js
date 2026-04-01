@@ -325,4 +325,155 @@ function showHistory(type) {
         btnTopup.classList.remove('bg-gray-100', 'text-gray-700');
         btnUsage.classList.add('bg-gray-100', 'text-gray-700');
         btnUsage.classList.remove('bg-blue-100', 'text-blue-700');
-    } else
+    } else {
+        btnUsage.classList.add('bg-blue-100', 'text-blue-700');
+        btnUsage.classList.remove('bg-gray-100', 'text-gray-700');
+        btnTopup.classList.add('bg-gray-100', 'text-gray-700');
+        btnTopup.classList.remove('bg-blue-100', 'text-blue-700');
+    }
+    loadHistory(type);
+}
+
+// ========== LAPORAN ==========
+function showReportModal() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('reportStartDate').value = today;
+    document.getElementById('reportEndDate').value = today;
+    document.getElementById('reportModal').classList.remove('hidden');
+    loadReport();
+}
+
+function closeReportModal() {
+    document.getElementById('reportModal').classList.add('hidden');
+}
+
+async function loadReport() {
+    const startDate = document.getElementById('reportStartDate').value;
+    const endDate = document.getElementById('reportEndDate').value;
+    if (!startDate || !endDate) return;
+
+    showLoading('Memuat laporan...');
+    try {
+        const { data: topups, error: topupError } = await supabase
+            .from('transactions_topup')
+            .select(`
+                amount,
+                created_at,
+                machines (name, type)
+            `)
+            .gte('created_at', `${startDate}T00:00:00`)
+            .lte('created_at', `${endDate}T23:59:59`);
+        if (topupError) throw topupError;
+
+        const { data: usages, error: usageError } = await supabase
+            .from('transactions_usage')
+            .select(`
+                amount,
+                created_at,
+                machines (name, type)
+            `)
+            .gte('created_at', `${startDate}T00:00:00`)
+            .lte('created_at', `${endDate}T23:59:59`);
+        if (usageError) throw usageError;
+
+        const totalTopup = topups.reduce((sum, t) => sum + t.amount, 0);
+        document.getElementById('reportTotalTopup').innerText = formatRupiah(totalTopup);
+
+        let totalUsage = 0;
+        let washerUsage = 0;
+        let dryerUsage = 0;
+        usages.forEach(u => {
+            totalUsage += u.amount;
+            if (u.machines.type === 'washer') washerUsage += u.amount;
+            else if (u.machines.type === 'dryer') dryerUsage += u.amount;
+        });
+        document.getElementById('reportTotalUsage').innerText = formatRupiah(totalUsage);
+        document.getElementById('reportWasherUsage').innerText = formatRupiah(washerUsage);
+        document.getElementById('reportDryerUsage').innerText = formatRupiah(dryerUsage);
+
+        const allTransactions = [
+            ...topups.map(t => ({
+                ...t,
+                transactionType: 'topup',
+                amountFormatted: formatRupiah(t.amount)
+            })),
+            ...usages.map(u => ({
+                ...u,
+                transactionType: 'usage',
+                amountFormatted: formatRupiah(u.amount)
+            }))
+        ];
+        allTransactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        const tbody = document.getElementById('reportTransactions');
+        if (allTransactions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Tidak ada transaksi</td></tr>';
+        } else {
+            tbody.innerHTML = allTransactions.map(t => {
+                const date = new Date(t.created_at).toLocaleString('id-ID');
+                const machineName = t.machines?.name || '-';
+                const typeLabel = t.transactionType === 'topup' ? 'Top Up' : (t.machines?.type === 'washer' ? 'Mesin Cuci' : 'Pengering');
+                const amountClass = t.transactionType === 'topup' ? 'text-green-600' : 'text-red-600';
+                return `
+                    <tr>
+                        <td class="px-4 py-2 text-sm">${date}</td>
+                        <td class="px-4 py-2 text-sm">${machineName}</td>
+                        <td class="px-4 py-2 text-sm">${typeLabel}</td>
+                        <td class="px-4 py-2 text-sm text-right font-semibold ${amountClass}">${t.amountFormatted}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        hideLoading();
+    } catch (error) {
+        console.error('Error loading report:', error);
+        hideLoading();
+        showToast('Gagal memuat laporan: ' + error.message, 'error');
+    }
+}
+
+// ========== UTILITY FUNCTIONS ==========
+function formatRupiah(amount) {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+}
+
+function updateNFCStatus(ok, msg) {
+    const indicator = document.getElementById('nfcIndicator');
+    const msgDiv = document.getElementById('nfcMessage');
+    if (ok) {
+        indicator.className = 'w-3 h-3 bg-green-500 rounded-full animate-pulse';
+        msgDiv.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${msg}`;
+    } else {
+        indicator.className = 'w-3 h-3 bg-red-500 rounded-full';
+        msgDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${msg}`;
+    }
+}
+
+function showLoading(msg) {
+    document.getElementById('loadingMessage').innerText = msg;
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const colors = { success: 'bg-green-500', error: 'bg-red-500', warning: 'bg-yellow-500', info: 'bg-blue-500' };
+    const toast = document.createElement('div');
+    toast.className = `${colors[type]} text-white px-6 py-3 rounded-xl shadow-lg mb-2 animate-fadeInUp`;
+    toast.innerHTML = `<div class="flex items-center space-x-2"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i><span>${message}</span></div>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function playBeep() {
+    try { new Audio('data:audio/wav;base64,U3RlYWx0aA==').play().catch(e=>{}); } catch(e) {}
+}
+function playSuccessBeep() {
+    try {
+        new Audio('data:audio/wav;base64,U3RlYWx0aA==').play();
+        setTimeout(() => new Audio('data:audio/wav;base64,U3RlYWx0aA==').play(), 200);
+    } catch(e) {}
+}
