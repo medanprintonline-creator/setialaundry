@@ -45,6 +45,30 @@
             from { opacity: 0; transform: translateX(-50%) translateY(20px); }
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
+        /* Custom untuk logo dan teks */
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-img {
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+            border-radius: 50%;
+            background-color: white;
+            padding: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header-logo-img {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            border-radius: 50%;
+            background-color: white;
+            padding: 4px;
+        }
     </style>
 </head>
 <body>
@@ -52,13 +76,10 @@
 <!-- Login Page -->
 <div id="loginPage" class="min-h-screen flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-        <div class="relative h-32 bg-gradient-to-r from-[#2596be] to-[#67bed9] flex items-center justify-center">
-            <div class="relative text-center">
-                <div class="w-20 h-20 mx-auto bg-white rounded-full flex items-center justify-center shadow-lg mb-3">
-                    <!-- Ganti dengan logo Anda -->
-                    <img src="images/logo.webp" alt="Setia Laundry" class="w-16 h-16 object-contain rounded-full">
-                </div>
-                <h1 class="text-white text-2xl font-bold">Setia Laundry</h1>
+        <div class="relative h-36 bg-gradient-to-r from-[#2596be] to-[#67bed9] flex items-center justify-center">
+            <div class="relative text-center logo-container">
+                <img src="images/logo.webp" alt="Setia Laundry" class="logo-img">
+                <h1 class="text-white text-2xl font-bold mt-2">Setia Laundry</h1>
                 <p class="text-white text-sm">Top Up Kartu Mesin</p>
             </div>
         </div>
@@ -88,14 +109,14 @@
 <div id="mainApp" class="hidden min-h-screen pb-20">
     <!-- Header -->
     <div class="bg-gradient-to-r from-[#2596be] to-[#67bed9] text-white shadow-lg">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
-                    <img src="images/logo.webp" alt="Setia Laundry" class="w-10 h-10 object-contain rounded-full">
+                <div class="bg-white rounded-full p-1 shadow-md">
+                    <img src="images/logo.webp" alt="Setia Laundry" class="header-logo-img">
                 </div>
                 <div>
                     <h1 class="text-xl font-bold">Setia Laundry</h1>
-                    <p class="text-xs">Manajemen Mesin</p>
+                    <p class="text-xs opacity-90">Top Up Kartu Mesin</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
@@ -103,7 +124,7 @@
                     <p class="text-sm font-semibold" id="userName"></p>
                     <p class="text-xs opacity-90" id="userRole"></p>
                 </div>
-                <button onclick="showReportModal()" class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 mr-2">
+                <button onclick="showReportModal()" class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2">
                     <i class="fas fa-chart-bar"></i>
                 </button>
                 <button onclick="logout()" class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2">
