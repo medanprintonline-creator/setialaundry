@@ -77,7 +77,6 @@ function scanNFC() {
 async function handleNFCRead(message, serialNumber) {
     showLoading('Membaca kartu...');
     try {
-        // Baca saldo dari kartu (NDEF record)
         let cardBalance = 0;
         for (const record of message.records) {
             if (record.recordType === "text") {
